@@ -158,7 +158,7 @@ int readPec(EmbPattern* pattern, const char* fileName)
     embFile_close(file);
 
     /* Check for an END stitch and add one if it is not present */
-    if(pattern->lastStitch->stitch.flags != END)
+    if(pattern->lastStitch && pattern->lastStitch->stitch.flags != END)
         embPattern_addStitchRel(pattern, 0, 0, END, 1);
 
     embPattern_flipVertical(pattern);
@@ -278,11 +278,14 @@ void writePecStitches(EmbPattern* pattern, EmbFile* file, const char* fileName)
     }
     binaryWriteBytes(file, "LA:", 3);
     flen = (int)(dotPos - start);
-
-    while(start < dotPos)
+    if (flen > 16)
     {
-        binaryWriteByte(file, (unsigned char)*start);
-        start++;
+        flen = 16;
+    }
+
+    for (i = 0; i < flen; i++)
+    {
+        binaryWriteByte(file, (unsigned char)*(start + i));
     }
     for(i = 0; i < (int)(16-flen); i++)
     {
@@ -400,7 +403,7 @@ int writePec(EmbPattern* pattern, const char* fileName)
     }
 
     /* Check for an END stitch and add one if it is not present */
-    if(pattern->lastStitch->stitch.flags != END)
+    if(pattern->lastStitch && pattern->lastStitch->stitch.flags != END)
         embPattern_addStitchRel(pattern, 0, 0, END, 1);
 
     file = embFile_open(fileName, "wb");
